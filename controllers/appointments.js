@@ -70,13 +70,13 @@ exports.getAppointment = async (req, res, next) => {
 //@access   Private
 exports.addAppointment = async (req, res, next) => {
   try {
-    req.body.RentalCarProvider = req.params.RentalCarProviderId;
-
-    const RentalCarProvider = await RentalCarProvider.findById(
-      req.params.RentalCarProviderId
+    req.body.rentalCarProvider = req.params.rentalCarProviderId;
+    console.log(req.params.rentalCarProviderId);
+    const rentalCarProvider = await RentalCarProvider.findById(
+      req.params.rentalCarProviderId
     );
 
-    if (!RentalCarProvider) {
+    if (!rentalCarProvider) {
       return res.status(404).json({
         success: false,
         message: `No RentalCarProvider with the id of ${req.params.RentalCarProviderId}`,
