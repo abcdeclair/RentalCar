@@ -20,11 +20,11 @@ app.use(express.json());
 //Cookie parser
 app.unsubscribe(cookieParser());
 
-const RentalCarProvider = require("./routes/RentalCarProvider");
+const RentalCarProvider = require("./routes/rentalCarProvider");
 const auth = require("./routes/auth");
 const appointments = require("./routes/appointments");
 
-app.use("/api/v1/RentalCarProvider", RentalCarProvider);
+app.use("/api/v1/rentalCarProvider", RentalCarProvider);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/appointments", appointments);
 

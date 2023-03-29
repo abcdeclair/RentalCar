@@ -10,14 +10,14 @@ exports.getAppointments = async (req, res, next) => {
   //General users can see only their appointments!
   if (req.user.role !== "admin") {
     query = Appointment.find({ user: req.user.id }).populate({
-      path: "RentalCarProvider",
-      select: "name province tel",
+      path: "rentalCarProvider",
+      select: "name address telephoneNumber",
     });
   } else {
     //If you are an admin, you can see all!
     query = Appointment.find().populate({
-      path: "RentalCarProvider",
-      select: "name province tel",
+      path: "rentalCarProvider",
+      select: "name address telephoneNumber",
     });
   }
   try {
@@ -42,7 +42,7 @@ exports.getAppointments = async (req, res, next) => {
 exports.getAppointment = async (req, res, next) => {
   try {
     const appointment = await Appointment.findById(req.params.id).populate({
-      path: "RentalCarProvider",
+      path: "rentalCarProvider",
       select: "name description tel",
     });
 
@@ -70,12 +70,12 @@ exports.getAppointment = async (req, res, next) => {
 //@access   Private
 exports.addAppointment = async (req, res, next) => {
   try {
-    req.body.rentalCarProvider = req.params.rentalCarProviderId;
-    console.log(req.params.rentalCarProviderId);
+    req.body.rentalCarProvider = req.params.RentalCarProviderId;
+    console.log(req.params.RentalCarProviderId);
     const rentalCarProvider = await RentalCarProvider.findById(
-      req.params.rentalCarProviderId
+      req.params.RentalCarProviderId
     );
-
+    console.log(rentalCarProvider);
     if (!rentalCarProvider) {
       return res.status(404).json({
         success: false,
