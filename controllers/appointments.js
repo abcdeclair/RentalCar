@@ -1,5 +1,5 @@
 const Appointment = require("../models/Appointment");
-const Hospital = require("../models/Hospital");
+const RentalCarProvider = require("../models/RentalCarProvider");
 
 //@desc   Get all appointments
 //@route GET /api/v1/appointments
@@ -10,13 +10,13 @@ exports.getAppointments = async (req, res, next) => {
   //General users can see only their appointments!
   if (req.user.role !== "admin") {
     query = Appointment.find({ user: req.user.id }).populate({
-      path: "hospital",
+      path: "RentalCarProvider",
       select: "name province tel",
     });
   } else {
     //If you are an admin, you can see all!
     query = Appointment.find().populate({
-      path: "hospital",
+      path: "RentalCarProvider",
       select: "name province tel",
     });
   }
@@ -42,7 +42,7 @@ exports.getAppointments = async (req, res, next) => {
 exports.getAppointment = async (req, res, next) => {
   try {
     const appointment = await Appointment.findById(req.params.id).populate({
-      path: "hospital",
+      path: "RentalCarProvider",
       select: "name description tel",
     });
 
@@ -66,18 +66,20 @@ exports.getAppointment = async (req, res, next) => {
 };
 
 //@desc     Add appointment
-//@route    POST /api/v1/hospitals/:hospitalId/appointment
+//@route    POST /api/v1/RentalCarProviders/:RentalCarProviderId/appointment
 //@access   Private
 exports.addAppointment = async (req, res, next) => {
   try {
-    req.body.hospital = req.params.hospitalId;
+    req.body.RentalCarProvider = req.params.RentalCarProviderId;
 
-    const hospital = await Hospital.findById(req.params.hospitalId);
+    const RentalCarProvider = await RentalCarProvider.findById(
+      req.params.RentalCarProviderId
+    );
 
-    if (!hospital) {
+    if (!RentalCarProvider) {
       return res.status(404).json({
         success: false,
-        message: `No hospital with the id of ${req.params.hospitalId}`,
+        message: `No RentalCarProvider with the id of ${req.params.RentalCarProviderId}`,
       });
     }
 
@@ -173,12 +175,10 @@ exports.deleteAppointment = async (req, res, next) => {
       appointment.user.toString() !== req.user.id &&
       req.user.role !== "admin"
     ) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: `User ${req.user.id} is not authorized to delete this bootcamp`,
-        });
+      return res.status(401).json({
+        success: false,
+        message: `User ${req.user.id} is not authorized to delete this bootcamp`,
+      });
     }
 
     await appointment.remove();
