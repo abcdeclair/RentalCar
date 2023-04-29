@@ -1,4 +1,5 @@
 const Appointment = require("../models/Appointment");
+const User = require("../models/User");
 const RentalCarProvider = require("../models/RentalCarProvider");
 
 //@desc   Get all appointments
@@ -85,9 +86,11 @@ exports.addAppointment = async (req, res, next) => {
 
     //add user Id to req.body
     req.body.user = req.user.id;
-
+    // console.log(req.user.id);
     //Check for existed appointment
     const existedAppointment = await Appointment.find({ user: req.user.id });
+    const existedUser = await User.findById(req.user.id);
+    //console.log(existedUser);
 
     //If the user is not an admin, they can only create 3 appointments.
     if (existedAppointment.length >= 3 && req.user.role !== "admin") {
@@ -99,16 +102,24 @@ exports.addAppointment = async (req, res, next) => {
 
     const carPrice = rentalCarProvider.price;
     const insurance = req.body.isInsurance ? 1000 : 0;
-    const creditPoint = req.body.creditPoint;
+    var creditPoint = req.body.creditPoint;
 
-    creditPoint = min(carPrice + insurance, creditPoint);
+    creditPoint = Math.min(carPrice + insurance, creditPoint);
 
     req.body.creditPoint = creditPoint;
 
     req.body.totalPrice = calPrice(carPrice, insurance, creditPoint);
 
-    const appointment = await Appointment.create(req.body);
+    if (existedUser.creditPoint < creditPoint) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Credit point not enoughs" });
+    }
 
+    const appointment = await Appointment.create(req.body);
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, {
+      creditPoint: existedUser.creditPoint - creditPoint,
+    });
     res.status(200).json({
       success: true,
       data: appointment,
@@ -147,19 +158,37 @@ exports.updateAppointment = async (req, res, next) => {
       });
     }
 
-    if (req.body.isInsurance) {
-      return res.status(400).json({
-        success: false,
-        message: "insurance can not be changed",
-      });
-    }
-
     if (req.body.creditPoint) {
       return res.status(400).json({
         success: false,
         message: "credit point can not be changed",
       });
     }
+
+    if (req.body.totalPrice) {
+      return res.status(400).json({
+        success: false,
+        message: "total price can not be changed",
+      });
+    }
+    if (req.body.rentalCarProvider) {
+      const rentalCarProvider = await RentalCarProvider.findById(
+        req.body.rentalCarProvider
+      );
+
+      const newCarPrice = rentalCarProvider.price;
+      const insurance = req.body.isInsurance ? 1000 : 0;
+      var creditPoint = appointment.creditPoint;
+      console.log("hello");
+      creditPoint = Math.min(newCarPrice + insurance, creditPoint);
+      req.body.creditPoint = creditPoint;
+      req.body.totalPrice = calPrice(
+        newCarPrice,
+        req.body.isInsurance,
+        creditPoint
+      );
+    }
+    console.log(req.body);
 
     appointment = await Appointment.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -244,10 +273,11 @@ exports.endAppointment = async (req, res, next) => {
       });
     }
 
-    // const rentPrice = appointment.rentalCarProvider.price
-    // const useCreditPoint = appointment.creditPoint
-    // const totalPrice =
-    // const userId= appointment.user
+    const userId = appointment.user;
+
+    const updateUser = await User.findByIdAndUpdate(userId, {
+      $inc: { creditPoint: appointment.totalPrice / 100 },
+    });
 
     await appointment.remove();
 
@@ -264,5 +294,5 @@ exports.endAppointment = async (req, res, next) => {
 };
 
 const calPrice = (rentPrice, isInsurance, creditPoint) => {
-  return rentPrice + creditPoint + (isInsurance ? 1000 : 0);
+  return rentPrice - creditPoint + (isInsurance ? 1000 : 0);
 };

@@ -5,6 +5,7 @@ const {
   addAppointment,
   updateAppointment,
   deleteAppointment,
+  endAppointment,
 } = require("../controllers/appointments");
 
 const router = express.Router({ mergeParams: true });
@@ -20,5 +21,8 @@ router
   .get(protect, getAppointment)
   .put(protect, authorize("admin", "user"), updateAppointment)
   .delete(protect, authorize("admin", "user"), deleteAppointment);
+router
+  .route("/end/:id")
+  .delete(protect, authorize("admin", "user"), endAppointment);
 
 module.exports = router;
