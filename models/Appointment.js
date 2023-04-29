@@ -19,6 +19,20 @@ const AppointmentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isInsurance: {
+    type: Boolean,
+    required: true,
+  },
+  creditPoint: {
+    type: Number,
+    min: 0,
+    required: true,
+  },
+  totalPrice: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
 });
 
 module.exports = mongoose.model("Appointment", AppointmentSchema);

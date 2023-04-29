@@ -37,6 +37,11 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  creditPoint: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
 });
 
 //Encrypt password using bcrypt

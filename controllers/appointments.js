@@ -97,6 +97,16 @@ exports.addAppointment = async (req, res, next) => {
       });
     }
 
+    const carPrice = rentalCarProvider.price;
+    const insurance = req.body.isInsurance ? 1000 : 0;
+    const creditPoint = req.body.creditPoint;
+
+    creditPoint = min(carPrice + insurance, creditPoint);
+
+    req.body.creditPoint = creditPoint;
+
+    req.body.totalPrice = calPrice(carPrice, insurance, creditPoint);
+
     const appointment = await Appointment.create(req.body);
 
     res.status(200).json({
@@ -134,6 +144,20 @@ exports.updateAppointment = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: `User ${req.user.id} is not authorized to update this appointment`,
+      });
+    }
+
+    if (req.body.isInsurance) {
+      return res.status(400).json({
+        success: false,
+        message: "insurance can not be changed",
+      });
+    }
+
+    if (req.body.creditPoint) {
+      return res.status(400).json({
+        success: false,
+        message: "credit point can not be changed",
       });
     }
 
@@ -193,4 +217,52 @@ exports.deleteAppointment = async (req, res, next) => {
       .status(500)
       .json({ success: false, message: "Cannot delete Appointment" });
   }
+};
+
+//@desc     End appointment
+//@route    DELETE/api/v1/appointments/end/:id
+//@access   Private
+exports.endAppointment = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: `No appointment with the id of ${req.params.id}`,
+      });
+    }
+
+    //Make sure user is the appointment owner
+    if (
+      appointment.user.toString() !== req.user.id &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: `User ${req.user.id} is not authorized to delete this bootcamp`,
+      });
+    }
+
+    // const rentPrice = appointment.rentalCarProvider.price
+    // const useCreditPoint = appointment.creditPoint
+    // const totalPrice =
+    // const userId= appointment.user
+
+    await appointment.remove();
+
+    res.status(200).json({
+      success: true,
+      data: {},
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Cannot delete Appointment" });
+  }
+};
+
+const calPrice = (rentPrice, isInsurance, creditPoint) => {
+  return rentPrice + creditPoint + (isInsurance ? 1000 : 0);
 };

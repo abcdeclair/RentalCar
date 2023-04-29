@@ -17,6 +17,11 @@ const RentalCarProviderSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a telephone number"],
     },
+    price: {
+      type: Number,
+      require: [true, "Please add a price"],
+      min: 0,
+    },
   },
   {
     toJSON: { virtuals: true },
