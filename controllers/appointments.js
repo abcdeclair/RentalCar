@@ -179,7 +179,7 @@ exports.updateAppointment = async (req, res, next) => {
       const newCarPrice = rentalCarProvider.price;
       const insurance = req.body.isInsurance ? 1000 : 0;
       var creditPoint = appointment.creditPoint;
-      console.log("hello");
+      //console.log("hello");
       creditPoint = Math.min(newCarPrice + insurance, creditPoint);
       req.body.creditPoint = creditPoint;
       req.body.totalPrice = calPrice(
@@ -188,7 +188,7 @@ exports.updateAppointment = async (req, res, next) => {
         creditPoint
       );
     }
-    console.log(req.body);
+    //console.log(req.body);
 
     appointment = await Appointment.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -283,7 +283,11 @@ exports.endAppointment = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {},
+      data: {
+        message: `End appointment Sucessful.You receive ${
+          appointment.totalPrice / 100
+        } credit points.`,
+      },
     });
   } catch (error) {
     console.log(error);
